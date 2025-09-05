@@ -11,7 +11,7 @@ import {
   TrendingUp,
   AlertCircle,
 } from "lucide-react";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, apiFetchWithFallback } from "@/lib/api";
 import { toast } from "@/hooks/use-toast";
 
 interface DashboardStats {
@@ -185,19 +185,22 @@ const AdminDashboard = () => {
     const mockCounts = { totalMaterials: 120, totalAssignments: 58 };
 
     try {
-      const res = await apiFetch<{ success: boolean; data: DashboardStats }>(
-        "/api/dashboard/stats"
-      ).catch(() => ({ success: true, data: mockStats } as any));
+      const res = await apiFetchWithFallback<{
+        success: boolean;
+        data: DashboardStats;
+      }>(["/api/dashboard/stats", "/dashboard/stats"]).catch(
+        () => ({ success: true, data: mockStats } as any)
+      );
       setStats(res.data);
     } catch {
       setStats(mockStats);
     }
 
     try {
-      const res = await apiFetch<{
+      const res = await apiFetchWithFallback<{
         success: boolean;
         data: RecentEnrollment[];
-      }>("/api/dashboard/recent-enrollments").catch(
+      }>(["/api/dashboard/recent-enrollments", "/dashboard/recent-enrollments"]).catch(
         () => ({ success: true, data: mockRecentEnrollments } as any)
       );
       setRecentEnrollments(res.data);
@@ -206,10 +209,10 @@ const AdminDashboard = () => {
     }
 
     try {
-      const res = await apiFetch<{
+      const res = await apiFetchWithFallback<{
         success: boolean;
         data: CoursePerformance[];
-      }>("/api/dashboard/course-performance").catch(
+      }>(["/api/dashboard/course-performance", "/dashboard/course-performance"]).catch(
         () => ({ success: true, data: mockPerformance } as any)
       );
       setCoursePerformance(res.data);
@@ -218,10 +221,10 @@ const AdminDashboard = () => {
     }
 
     try {
-      const res = await apiFetch<{
+      const res = await apiFetchWithFallback<{
         success: boolean;
         data: DashboardMetrics;
-      }>("/api/dashboard/metrics").catch(
+      }>(["/api/dashboard/metrics", "/dashboard/metrics"]).catch(
         () => ({ success: true, data: mockMetrics } as any)
       );
       setMetrics(res.data);
@@ -230,10 +233,10 @@ const AdminDashboard = () => {
     }
 
     try {
-      const res = await apiFetch<{
+      const res = await apiFetchWithFallback<{
         success: boolean;
         data: { totalMaterials: number; totalAssignments: number };
-      }>("/api/dashboard/counts").catch(
+      }>(["/api/dashboard/counts", "/dashboard/counts"]).catch(
         () => ({ success: true, data: mockCounts } as any)
       );
       setCounts(res.data);
