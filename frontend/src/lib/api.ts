@@ -1,5 +1,8 @@
-export const API_BASE_URL =
-  (import.meta as any).env?.VITE_API_URL || "http://localhost:5000";
+const RAW_API_BASE_URL =
+  (import.meta as any).env?.VITE_API_URL ||
+  "https://backend-of-ead-lms.vercel.app";
+
+export const API_BASE_URL = RAW_API_BASE_URL.replace(/\/+$/, "");
 
 export function getAuthToken(): string | null {
   return localStorage.getItem("token");

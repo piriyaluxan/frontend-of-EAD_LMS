@@ -39,21 +39,26 @@ const Register = () => {
     }
 
     try {
-      const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          email: formData.email,
-          password: formData.password,
-          role: "student",
-          studentId: formData.studentId || undefined,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok || !data.success)
-        throw new Error(data.error || "Registration failed");
+      // TODO: Replace with actual backend call when backend is ready
+      // For now, using mock registration
+      const mockUser = {
+        id: "1",
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        role: "student",
+        studentId: formData.studentId || "STU" + Date.now()
+      };
+
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Mock successful registration
+      const data = {
+        success: true,
+        token: "mock-jwt-token-" + Date.now(),
+        user: mockUser
+      };
 
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));

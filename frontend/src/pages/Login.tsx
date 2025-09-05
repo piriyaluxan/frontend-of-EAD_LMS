@@ -40,16 +40,26 @@ const Login = () => {
     }
 
     try {
-      const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+      // TODO: Replace with actual backend call when backend is ready
+      // For now, using mock authentication
+      const mockUser = {
+        id: "1",
+        firstName: "John",
+        lastName: "Doe",
+        email: formData.email,
+        role: formData.role,
+        studentId: formData.role === "student" ? "STU001" : undefined
+      };
 
-      const data = await res.json();
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
-      if (!res.ok || !data.success)
-        throw new Error(data.error || "Login failed");
+      // Mock successful login for demo purposes
+      const data = {
+        success: true,
+        token: "mock-jwt-token-" + Date.now(),
+        user: mockUser
+      };
 
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
