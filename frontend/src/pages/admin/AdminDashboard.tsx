@@ -11,7 +11,7 @@ import {
   TrendingUp,
   AlertCircle,
 } from "lucide-react";
-import { apiFetch, apiFetchWithFallback } from "@/lib/api";
+import { ApiService } from "@/lib/apiService";
 import { toast } from "@/hooks/use-toast";
 
 interface DashboardStats {
@@ -185,61 +185,39 @@ const AdminDashboard = () => {
     const mockCounts = { totalMaterials: 120, totalAssignments: 58 };
 
     try {
-      const res = await apiFetchWithFallback<{
-        success: boolean;
-        data: DashboardStats;
-      }>(["/api/dashboard/stats", "/dashboard/stats"]).catch(
-        () => ({ success: true, data: mockStats } as any)
-      );
-      setStats(res.data);
+      const res = await ApiService.getDashboardStats();
+      setStats(res.data!);
     } catch {
       setStats(mockStats);
     }
 
     try {
-      const res = await apiFetchWithFallback<{
-        success: boolean;
-        data: RecentEnrollment[];
-      }>(["/api/dashboard/recent-enrollments", "/dashboard/recent-enrollments"]).catch(
-        () => ({ success: true, data: mockRecentEnrollments } as any)
-      );
-      setRecentEnrollments(res.data);
+      const res = await ApiService.getRecentEnrollments();
+      setRecentEnrollments(res.data!);
     } catch {
       setRecentEnrollments(mockRecentEnrollments);
     }
 
     try {
-      const res = await apiFetchWithFallback<{
-        success: boolean;
-        data: CoursePerformance[];
-      }>(["/api/dashboard/course-performance", "/dashboard/course-performance"]).catch(
-        () => ({ success: true, data: mockPerformance } as any)
-      );
-      setCoursePerformance(res.data);
+      const res = await ApiService.getCoursePerformance();
+      setCoursePerformance(res.data!);
     } catch {
       setCoursePerformance(mockPerformance);
     }
 
     try {
-      const res = await apiFetchWithFallback<{
-        success: boolean;
-        data: DashboardMetrics;
-      }>(["/api/dashboard/metrics", "/dashboard/metrics"]).catch(
-        () => ({ success: true, data: mockMetrics } as any)
-      );
-      setMetrics(res.data);
+      const res = await ApiService.getDashboardMetrics();
+      setMetrics(res.data!);
     } catch {
       setMetrics(mockMetrics);
     }
 
     try {
-      const res = await apiFetchWithFallback<{
-        success: boolean;
-        data: { totalMaterials: number; totalAssignments: number };
-      }>(["/api/dashboard/counts", "/dashboard/counts"]).catch(
-        () => ({ success: true, data: mockCounts } as any)
-      );
-      setCounts(res.data);
+      const res = await ApiService.getDashboardStats();
+      setCounts({
+        totalMaterials: res.data!.totalMaterials,
+        totalAssignments: res.data!.totalAssignments
+      });
     } catch {
       setCounts(mockCounts);
     }

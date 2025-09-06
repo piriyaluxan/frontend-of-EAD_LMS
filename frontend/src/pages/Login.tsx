@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import { GraduationCap, User, Lock, LogIn } from "lucide-react";
-import { API_BASE_URL } from "@/lib/api";
+import { ApiService } from "@/lib/apiService";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -40,38 +40,24 @@ const Login = () => {
     }
 
     try {
-      // TODO: Replace with actual backend call when backend is ready
-      // For now, using mock authentication
-      const mockUser = {
-        id: "1",
-        firstName: "John",
-        lastName: "Doe",
-        email: formData.email,
-        role: formData.role,
-        studentId: formData.role === "student" ? "STU001" : undefined
-      };
+      // Call the API service
+      const response = await ApiService.login(formData.email, formData.password, formData.role);
 
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      if (!response.success) {
+        throw new Error(response.error || 'Login failed');
+      }
 
-      // Mock successful login for demo purposes
-      const data = {
-        success: true,
-        token: "mock-jwt-token-" + Date.now(),
-        user: mockUser
-      };
-
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem("token", response.data!.token);
+      localStorage.setItem("user", JSON.stringify(response.data!.user));
 
       toast({
         title: "Login Successful",
-        description: `Welcome ${data.user.firstName}`,
+        description: `Welcome ${response.data!.user.firstName}`,
         className: "bg-success text-success-foreground",
       });
 
-      if (data.user.role === "admin") navigate("/admin/dashboard");
-      else if (data.user.role === "instructor")
+      if (response.data!.user.role === "admin") navigate("/admin/dashboard");
+      else if (response.data!.user.role === "instructor")
         navigate("/instructor/dashboard");
       else navigate("/student");
     } catch (error: any) {

@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import { GraduationCap, User, Lock, Mail } from "lucide-react";
-import { API_BASE_URL } from "@/lib/api";
+import { ApiService } from "@/lib/apiService";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -39,8 +39,8 @@ const Register = () => {
     }
 
     try {
-      // TODO: Replace with actual backend call when backend is ready
-      // For now, using mock registration
+      // For now, simulate successful registration
+      // In a real app, this would call the registration API
       const mockUser = {
         id: "1",
         firstName: formData.firstName,

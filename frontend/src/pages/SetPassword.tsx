@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import { API_BASE_URL } from "@/lib/api";
+import { ApiService } from "@/lib/apiService";
 
 const SetPassword = () => {
   const navigate = useNavigate();
@@ -40,8 +40,7 @@ const SetPassword = () => {
     try {
       setIsLoading(true);
       
-      // TODO: Replace with actual backend call when backend is ready
-      // For now, using mock password setting
+      // Simulate password setting (in real app, this would call the API)
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Mock successful password setting

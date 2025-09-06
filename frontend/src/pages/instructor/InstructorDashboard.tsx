@@ -16,7 +16,7 @@ import {
   LogOut,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-import { apiFetch } from "@/lib/api";
+import { ApiService } from "@/lib/apiService";
 
 interface Course {
   _id: string;
@@ -53,8 +53,8 @@ const InstructorDashboard = () => {
     try {
       setIsLoading(true);
       const [coursesData, studentsData] = await Promise.all([
-        apiFetch("/api/courses/instructor"),
-        apiFetch("/api/users/students"),
+        ApiService.getInstructorCourses(),
+        ApiService.getUsers('student'),
       ]);
 
       setCourses(coursesData.data || []);
