@@ -23,7 +23,7 @@ import {
   Calendar,
   BookOpen,
 } from "lucide-react";
-import { ApiService } from "@/lib/apiService";
+import { apiFetch } from "@/lib/api";
 
 interface Course {
   id: string;
@@ -80,9 +80,9 @@ const CourseManagement = () => {
 
   const fetchCourses = async () => {
     try {
-      const res = await ApiService.getCourses();
+      const res = await apiFetch<CoursesResponse>(`/api/courses?limit=50`);
       setCourses(
-        res.data!.map((c) => ({
+        res.data.map((c) => ({
           id: c._id,
           title: c.title,
           code: c.code,

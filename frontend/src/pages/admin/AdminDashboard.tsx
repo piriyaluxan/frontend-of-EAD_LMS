@@ -11,7 +11,7 @@ import {
   TrendingUp,
   AlertCircle,
 } from "lucide-react";
-import { ApiService } from "@/lib/apiService";
+import { apiFetch } from "@/lib/api";
 import { toast } from "@/hooks/use-toast";
 
 interface DashboardStats {
@@ -92,137 +92,44 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
 
   const loadDashboardData = async () => {
-    setLoading(true);
-
-    // Mock fallbacks when backend endpoints are unavailable
-    const mockStats: DashboardStats = {
-      totalCourses: 8,
-      totalStudents: 120,
-      totalEnrollments: 340,
-      completedCourses: 56,
-    };
-
-    const mockRecentEnrollments: RecentEnrollment[] = [
-      {
-        _id: "1",
-        student: {
-          _id: "s1",
-          firstName: "Alice",
-          lastName: "Johnson",
-          email: "alice@example.com",
-          studentId: "STU001",
-        },
-        course: { _id: "c1", title: "Intro to CS", code: "CS101" },
-        status: "active",
-        createdAt: new Date().toISOString(),
-      },
-      {
-        _id: "2",
-        student: {
-          _id: "s2",
-          firstName: "Bob",
-          lastName: "Lee",
-          email: "bob@example.com",
-          studentId: "STU002",
-        },
-        course: { _id: "c2", title: "Data Structures", code: "CS201" },
-        status: "completed",
-        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 26).toISOString(),
-      },
-    ];
-
-    const mockPerformance: CoursePerformance[] = [
-      {
-        _id: "cp1",
-        courseTitle: "Intro to CS",
-        courseCode: "CS101",
-        totalStudents: 40,
-        averageScore: 78,
-        passedCount: 34,
-        failedCount: 6,
-        passRate: 85,
-      },
-      {
-        _id: "cp2",
-        courseTitle: "Data Structures",
-        courseCode: "CS201",
-        totalStudents: 35,
-        averageScore: 74,
-        passedCount: 28,
-        failedCount: 7,
-        passRate: 80,
-      },
-    ];
-
-    const mockMetrics: DashboardMetrics = {
-      overview: {
-        totalCourses: 8,
-        totalStudents: 120,
-        totalInstructors: 10,
-        totalEnrollments: 340,
-        totalResults: 290,
-      },
-      enrollments: {
-        active: 210,
-        completed: 130,
-        completionRate: 62,
-      },
-      performance: {
-        averageScore: 76,
-        topCourse: { title: "Data Structures", code: "CS201" },
-      },
-      recentActivity: [
-        {
-          id: "ra1",
-          studentName: "Alice Johnson",
-          courseName: "Intro to CS",
-          status: "enrolled",
-          date: new Date().toISOString(),
-        },
-      ],
-    };
-
-    const mockCounts = { totalMaterials: 120, totalAssignments: 58 };
-
     try {
-      const res = await ApiService.getDashboardStats();
-      setStats(res.data!);
-    } catch {
-      setStats(mockStats);
-    }
+      setLoading(true);
 
-    try {
-      const res = await ApiService.getRecentEnrollments();
-      setRecentEnrollments(res.data!);
-    } catch {
-      setRecentEnrollments(mockRecentEnrollments);
-    }
+      // Load all dashboard data in parallel
+      const [statsRes, enrollmentsRes, performanceRes, metricsRes, countsRes] =
+        await Promise.all([
+          apiFetch<{ success: boolean; data: DashboardStats }>(
+            "/api/dashboard/stats"
+          ),
+          apiFetch<{ success: boolean; data: RecentEnrollment[] }>(
+            "/api/dashboard/recent-enrollments"
+          ),
+          apiFetch<{ success: boolean; data: CoursePerformance[] }>(
+            "/api/dashboard/course-performance"
+          ),
+          apiFetch<{ success: boolean; data: DashboardMetrics }>(
+            "/api/dashboard/metrics"
+          ),
+          apiFetch<{
+            success: boolean;
+            data: { totalMaterials: number; totalAssignments: number };
+          }>("/api/dashboard/counts"),
+        ]);
 
-    try {
-      const res = await ApiService.getCoursePerformance();
-      setCoursePerformance(res.data!);
-    } catch {
-      setCoursePerformance(mockPerformance);
-    }
-
-    try {
-      const res = await ApiService.getDashboardMetrics();
-      setMetrics(res.data!);
-    } catch {
-      setMetrics(mockMetrics);
-    }
-
-    try {
-      const res = await ApiService.getDashboardStats();
-      setCounts({
-        totalMaterials: res.data!.totalMaterials,
-        totalAssignments: res.data!.totalAssignments
+      setStats(statsRes.data);
+      setRecentEnrollments(enrollmentsRes.data);
+      setCoursePerformance(performanceRes.data);
+      setMetrics(metricsRes.data);
+      setCounts(countsRes.data);
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Failed to load dashboard data",
+        description: error.message || "Please try again later",
       });
-    } catch {
-      setCounts(mockCounts);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   useEffect(() => {

@@ -47,7 +47,7 @@ interface UsersResponse {
   }>;
   pagination?: any;
 }
-import { ApiService } from "@/lib/apiService";
+import { apiFetch } from "@/lib/api";
 
 const StudentManagement = () => {
   const [students, setStudents] = useState<Student[]>([]);
@@ -64,10 +64,12 @@ const StudentManagement = () => {
   });
 
   const fetchStudents = async () => {
-    const res = await ApiService.getUsers('student');
+    const res = await apiFetch<UsersResponse>(
+      `/api/users?role=student&limit=50`
+    );
     setStudents(
-      res.data!.map((u) => ({
-        id: u._id,
+      res.data.map((u) => ({
+        id: (u as any)._id,
         firstName: u.firstName,
         lastName: u.lastName,
         email: u.email,

@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import { GraduationCap, User, Lock, LogIn } from "lucide-react";
-import { ApiService } from "@/lib/apiService";
+import { API_BASE_URL } from "@/lib/api";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -40,24 +40,28 @@ const Login = () => {
     }
 
     try {
-      // Call the API service
-      const response = await ApiService.login(formData.email, formData.password, formData.role);
+      const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
 
-      if (!response.success) {
-        throw new Error(response.error || 'Login failed');
-      }
+      const data = await res.json();
 
-      localStorage.setItem("token", response.data!.token);
-      localStorage.setItem("user", JSON.stringify(response.data!.user));
+      if (!res.ok || !data.success)
+        throw new Error(data.error || "Login failed");
+
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
 
       toast({
         title: "Login Successful",
-        description: `Welcome ${response.data!.user.firstName}`,
+        description: `Welcome ${data.user.firstName}`,
         className: "bg-success text-success-foreground",
       });
 
-      if (response.data!.user.role === "admin") navigate("/admin/dashboard");
-      else if (response.data!.user.role === "instructor")
+      if (data.user.role === "admin") navigate("/admin/dashboard");
+      else if (data.user.role === "instructor")
         navigate("/instructor/dashboard");
       else navigate("/student");
     } catch (error: any) {

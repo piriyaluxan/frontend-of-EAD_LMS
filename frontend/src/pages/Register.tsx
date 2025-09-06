@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import { GraduationCap, User, Lock, Mail } from "lucide-react";
-import { ApiService } from "@/lib/apiService";
+import { API_BASE_URL } from "@/lib/api";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -39,26 +39,21 @@ const Register = () => {
     }
 
     try {
-      // For now, simulate successful registration
-      // In a real app, this would call the registration API
-      const mockUser = {
-        id: "1",
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        role: "student",
-        studentId: formData.studentId || "STU" + Date.now()
-      };
-
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Mock successful registration
-      const data = {
-        success: true,
-        token: "mock-jwt-token-" + Date.now(),
-        user: mockUser
-      };
+      const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          password: formData.password,
+          role: "student",
+          studentId: formData.studentId || undefined,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success)
+        throw new Error(data.error || "Registration failed");
 
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));

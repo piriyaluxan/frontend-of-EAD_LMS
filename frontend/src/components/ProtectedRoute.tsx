@@ -40,15 +40,14 @@ const ProtectedRoute = ({
           return;
         }
 
-        // TODO: Replace with actual backend call when backend is ready
-        // For now, using mock authentication
-        const storedUser = localStorage.getItem("user");
-        if (storedUser) {
-          const user = JSON.parse(storedUser);
-          setUser(user);
+        // Verify token and get user info
+        const response = await apiFetch<{ user: User }>("/api/auth/me");
+
+        if (response.user) {
+          setUser(response.user);
 
           // Check if user role is allowed
-          if (allowedRoles.includes(user.role)) {
+          if (allowedRoles.includes(response.user.role)) {
             setIsAuthenticated(true);
           } else {
             toast({

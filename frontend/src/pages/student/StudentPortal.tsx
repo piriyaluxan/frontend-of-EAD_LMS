@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
-import { ApiService } from "@/lib/apiService";
+import { apiFetch } from "@/lib/api";
 import {
   BookOpen,
   Users,
@@ -142,8 +142,8 @@ const StudentPortal = () => {
         setIsLoading(true);
 
         // Get user info
-        const userResponse = await ApiService.getCurrentUser();
-        setUser(userResponse.data!.user);
+        const userResponse = await apiFetch<{ user: User }>("/api/auth/me");
+        setUser(userResponse.user);
 
         // Fetch all data in parallel
         const [
@@ -153,18 +153,18 @@ const StudentPortal = () => {
           materialsRes,
           assignmentsRes,
         ] = await Promise.all([
-          ApiService.getStudentEnrollments(),
-          ApiService.getAvailableCourses(),
-          ApiService.getResults(),
-          ApiService.getEnrolledMaterials(),
-          ApiService.getEnrolledAssignments(),
+          apiFetch<{ data: EnrolledCourse[] }>("/api/enrollments/student/me"),
+          apiFetch<{ data: Course[] }>("/api/courses/available"),
+          apiFetch<{ data: Result[] }>("/api/results"),
+          apiFetch<{ data: Material[] }>("/api/materials/enrolled"),
+          apiFetch<{ data: Assignment[] }>("/api/assignments/enrolled"),
         ]);
 
-        setEnrolledCourses(enrollmentsRes.data!);
-        setAvailableCourses(coursesRes.data!);
-        setResults(resultsRes.data!);
-        setMaterials(materialsRes.data!);
-        setAssignments(assignmentsRes.data!);
+        setEnrolledCourses(enrollmentsRes.data);
+        setAvailableCourses(coursesRes.data);
+        setResults(resultsRes.data);
+        setMaterials(materialsRes.data);
+        setAssignments(assignmentsRes.data);
       } catch (error) {
         console.error("Failed to load portal data:", error);
         toast({
