@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import { GraduationCap, User, Lock, Mail } from "lucide-react";
-import { API_BASE_URL } from "@/lib/api";
+import { apiFetch } from "@/lib/api";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -39,9 +39,8 @@ const Register = () => {
     }
 
     try {
-      const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
+      const data = await apiFetch("/api/auth/register", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           firstName: formData.firstName,
           lastName: formData.lastName,
@@ -51,8 +50,8 @@ const Register = () => {
           studentId: formData.studentId || undefined,
         }),
       });
-      const data = await res.json();
-      if (!res.ok || !data.success)
+      
+      if (!data.success)
         throw new Error(data.error || "Registration failed");
 
       localStorage.setItem("token", data.token);

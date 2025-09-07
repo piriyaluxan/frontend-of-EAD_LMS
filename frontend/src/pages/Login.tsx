@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import { GraduationCap, User, Lock, LogIn } from "lucide-react";
-import { API_BASE_URL } from "@/lib/api";
+import { apiFetch } from "@/lib/api";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -40,15 +40,12 @@ const Login = () => {
     }
 
     try {
-      const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
+      const data = await apiFetch("/api/auth/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
 
-      const data = await res.json();
-
-      if (!res.ok || !data.success)
+      if (!data.success)
         throw new Error(data.error || "Login failed");
 
       localStorage.setItem("token", data.token);
