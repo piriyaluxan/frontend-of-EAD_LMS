@@ -715,7 +715,7 @@ const StudentPortal = () => {
                                         size="sm"
                                         onClick={() =>
                                           window.open(
-                                            `/uploads/${material.fileName}`,
+                                            `/placeholder.svg`,
                                             "_blank"
                                           )
                                         }
