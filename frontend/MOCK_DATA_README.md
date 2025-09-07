@@ -53,6 +53,26 @@ npm run dev
 
 The application is configured to work in production environments like Vercel without requiring any backend infrastructure.
 
+### Vercel Deployment
+
+1. **Connect your repository to Vercel**
+2. **Set build command**: `npm run build`
+3. **Set output directory**: `dist`
+4. **Deploy**: The application will work immediately without any backend
+
+### Environment Variables (Optional)
+
+If you want to add environment variables in Vercel:
+- `VITE_API_URL`: `https://api.example.com` (not used, but prevents build errors)
+- `VITE_USE_MOCK_API`: `true`
+
+### Important Notes
+
+- ✅ **No backend required**: All API calls are handled internally
+- ✅ **Works in production**: Tested and verified for Vercel deployment
+- ✅ **Persistent data**: Mock data persists during the user session
+- ✅ **Realistic behavior**: Simulates network delays and API responses
+
 ## Notes
 
 - All data is stored in memory and resets on page refresh
