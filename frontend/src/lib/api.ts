@@ -1,22 +1,153 @@
-// Mock API implementation - replaces backend calls with mock data
-import {
-  mockAuth,
-  mockCoursesAPI,
-  mockUsersAPI,
-  mockEnrollmentsAPI,
-  mockAssignmentsAPI,
-  mockMaterialsAPI,
-  mockResultsAPI,
-  mockDashboardAPI,
-} from './mockAPI';
-
-export const API_BASE_URL = "mock://api"; // Mock URL for reference
+// Simple mock API that definitely works in production
+export const API_BASE_URL = "mock://api";
 
 export function getAuthToken(): string | null {
   return localStorage.getItem("token");
 }
 
-// Mock API router that routes requests to appropriate mock functions
+// Simple mock data
+const mockUsers = [
+  {
+    _id: "admin1",
+    firstName: "Admin",
+    lastName: "User",
+    email: "admin@university.edu",
+    role: "admin",
+  },
+  {
+    _id: "instructor1",
+    firstName: "Dr. Sarah",
+    lastName: "Johnson",
+    email: "instructor@university.edu",
+    role: "instructor",
+  },
+  {
+    _id: "student1",
+    firstName: "John",
+    lastName: "Doe",
+    email: "student@university.edu",
+    role: "student",
+    studentId: "STU001",
+  },
+];
+
+const mockCourses = [
+  {
+    _id: "course1",
+    title: "Introduction to Computer Science",
+    code: "CS101",
+    description: "A comprehensive introduction to computer science fundamentals",
+    instructor: {
+      _id: "instructor1",
+      firstName: "Dr. Sarah",
+      lastName: "Johnson",
+      email: "instructor@university.edu",
+    },
+    capacity: 50,
+    enrolled: 35,
+    duration: "16 weeks",
+    status: "active",
+  },
+  {
+    _id: "course2",
+    title: "Data Structures and Algorithms",
+    code: "CS201",
+    description: "Advanced study of data structures and algorithmic problem-solving",
+    instructor: {
+      _id: "instructor1",
+      firstName: "Dr. Sarah",
+      lastName: "Johnson",
+      email: "instructor@university.edu",
+    },
+    capacity: 40,
+    enrolled: 28,
+    duration: "16 weeks",
+    status: "active",
+  },
+];
+
+const mockEnrollments = [
+  {
+    _id: "enrollment1",
+    student: {
+      _id: "student1",
+      firstName: "John",
+      lastName: "Doe",
+      email: "student@university.edu",
+      studentId: "STU001",
+    },
+    course: {
+      _id: "course1",
+      title: "Introduction to Computer Science",
+      code: "CS101",
+    },
+    status: "active",
+    progress: 75,
+    enrollmentDate: "2024-01-15T00:00:00Z",
+  },
+];
+
+const mockAssignments = [
+  {
+    _id: "assignment1",
+    title: "Programming Assignment 1",
+    description: "Implement basic data structures in Python",
+    course: {
+      _id: "course1",
+      title: "Introduction to Computer Science",
+      code: "CS101",
+    },
+    dueDate: "2024-03-15T23:59:59Z",
+    maxPoints: 100,
+    createdBy: {
+      firstName: "Dr. Sarah",
+      lastName: "Johnson",
+    },
+  },
+];
+
+const mockMaterials = [
+  {
+    _id: "material1",
+    title: "Introduction to Programming Concepts",
+    description: "Comprehensive guide to programming fundamentals",
+    fileType: "pdf",
+    course: {
+      _id: "course1",
+      title: "Introduction to Computer Science",
+      code: "CS101",
+    },
+    fileName: "intro_programming.pdf",
+    originalName: "Introduction to Programming Concepts.pdf",
+    size: 2048576,
+    uploadedBy: {
+      firstName: "Dr. Sarah",
+      lastName: "Johnson",
+    },
+  },
+];
+
+const mockResults = [
+  {
+    _id: "result1",
+    student: {
+      _id: "student1",
+      firstName: "John",
+      lastName: "Doe",
+      studentId: "STU001",
+    },
+    course: {
+      _id: "course1",
+      title: "Introduction to Computer Science",
+      code: "CS101",
+    },
+    finalGrade: "A",
+    finalPercentage: 92,
+    status: "passed",
+  },
+];
+
+// Mock API functions
 export async function apiFetch<T = any>(
   path: string,
   options: RequestInit = {}
@@ -24,110 +155,243 @@ export async function apiFetch<T = any>(
   const method = options.method || "GET";
   const body = options.body ? JSON.parse(options.body as string) : {};
   
+  // Simulate network delay
+  await new Promise(resolve => setTimeout(resolve, 100));
+  
   try {
     // Authentication routes
     if (path === "/api/auth/login") {
-      return await mockAuth.login(body.email, body.password, body.role) as T;
+      const user = mockUsers.find(u => u.email === body.email && u.role === body.role);
+      
+      if (!user) {
+        throw new Error("Invalid credentials");
+      }
+      
+      if (body.password !== "password123") {
+        throw new Error("Invalid password");
+      }
+      
+      const token = `mock_token_${user._id}_${Date.now()}`;
+      
+      return {
+        success: true,
+        token,
+        user: {
+          id: user._id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          role: user.role,
+          studentId: user.studentId,
+        },
+      } as T;
     }
     
     if (path === "/api/auth/me") {
-      return await mockAuth.me() as T;
+      const userData = localStorage.getItem("user");
+      if (!userData) {
+        throw new Error("Not authenticated");
+      }
+      
+      const user = JSON.parse(userData);
+      const fullUser = mockUsers.find(u => u._id === user.id);
+      
+      if (!fullUser) {
+        throw new Error("User not found");
+      }
+      
+      return {
+        user: {
+          id: fullUser._id,
+          firstName: fullUser.firstName,
+          lastName: fullUser.lastName,
+          email: fullUser.email,
+          role: fullUser.role,
+          studentId: fullUser.studentId,
+        },
+      } as T;
     }
     
     if (path === "/api/auth/set-password") {
-      return await mockAuth.setPassword(body.email, body.password) as T;
+      return {
+        success: true,
+        message: "Password set successfully",
+      } as T;
     }
     
     if (path === "/api/auth/register") {
-      return await mockAuth.register(body) as T;
+      const existingUser = mockUsers.find(u => u.email === body.email);
+      if (existingUser) {
+        throw new Error("User already exists");
+      }
+      
+      const newUser = {
+        _id: `student${mockUsers.length + 1}`,
+        firstName: body.firstName,
+        lastName: body.lastName,
+        email: body.email,
+        role: "student",
+        studentId: `STU${String(mockUsers.filter(u => u.role === "student").length + 1).padStart(3, '0')}`,
+      };
+      
+      mockUsers.push(newUser);
+      
+      return {
+        success: true,
+        message: "Registration successful",
+        user: {
+          id: newUser._id,
+          firstName: newUser.firstName,
+          lastName: newUser.lastName,
+          email: newUser.email,
+          role: newUser.role,
+          studentId: newUser.studentId,
+        },
+      } as T;
     }
     
     // Dashboard routes
     if (path === "/api/dashboard/stats") {
-      return await mockDashboardAPI.getStats() as T;
+      return {
+        success: true,
+        data: {
+          totalCourses: mockCourses.length,
+          totalStudents: mockUsers.filter(u => u.role === "student").length,
+          totalEnrollments: mockEnrollments.length,
+          completedCourses: mockEnrollments.filter(e => e.status === "completed").length,
+        },
+      } as T;
     }
     
     if (path === "/api/dashboard/recent-enrollments") {
-      return await mockDashboardAPI.getRecentEnrollments() as T;
+      return {
+        success: true,
+        data: mockEnrollments.slice(0, 5),
+      } as T;
     }
     
     if (path === "/api/dashboard/course-performance") {
-      return await mockDashboardAPI.getCoursePerformance() as T;
+      return {
+        success: true,
+        data: mockCourses.map(course => ({
+          _id: course._id,
+          courseTitle: course.title,
+          courseCode: course.code,
+          totalStudents: mockEnrollments.filter(e => e.course._id === course._id).length,
+          averageScore: 85,
+          passedCount: 20,
+          failedCount: 5,
+          passRate: 80,
+        })),
+      } as T;
     }
     
     if (path === "/api/dashboard/metrics") {
-      return await mockDashboardAPI.getMetrics() as T;
+      return {
+        success: true,
+        data: {
+          overview: {
+            totalCourses: mockCourses.length,
+            totalStudents: mockUsers.filter(u => u.role === "student").length,
+            totalInstructors: mockUsers.filter(u => u.role === "instructor").length,
+            totalEnrollments: mockEnrollments.length,
+            totalResults: mockResults.length,
+          },
+          enrollments: {
+            active: mockEnrollments.filter(e => e.status === "active").length,
+            completed: mockEnrollments.filter(e => e.status === "completed").length,
+            completionRate: 75,
+          },
+          performance: {
+            averageScore: 85,
+            topCourse: mockCourses[0],
+          },
+          recentActivity: mockEnrollments.map(enrollment => ({
+            id: enrollment._id,
+            studentName: `${enrollment.student.firstName} ${enrollment.student.lastName}`,
+            courseName: enrollment.course.title,
+            status: enrollment.status,
+            date: enrollment.enrollmentDate,
+          })),
+        },
+      } as T;
     }
     
     if (path === "/api/dashboard/counts") {
-      return await mockDashboardAPI.getCounts() as T;
+      return {
+        success: true,
+        data: {
+          totalMaterials: mockMaterials.length,
+          totalAssignments: mockAssignments.length,
+        },
+      } as T;
     }
     
     // Courses routes
     if (path.startsWith("/api/courses")) {
       if (path === "/api/courses" || path.includes("?")) {
-        const url = new URL(path, "http://localhost");
-        const limit = url.searchParams.get("limit");
-        const page = url.searchParams.get("page");
-        return await mockCoursesAPI.getAll({ 
-          limit: limit ? parseInt(limit) : undefined,
-          page: page ? parseInt(page) : undefined,
-        }) as T;
+        return {
+          success: true,
+          data: mockCourses,
+        } as T;
       }
       
       if (path === "/api/courses/available") {
-        return await mockCoursesAPI.getAvailable() as T;
+        return {
+          success: true,
+          data: mockCourses.filter(c => c.status === "active"),
+        } as T;
       }
       
       if (path === "/api/courses/instructor") {
-        return await mockCoursesAPI.getByInstructor() as T;
+        return {
+          success: true,
+          data: mockCourses.filter(c => c.instructor._id === "instructor1"),
+        } as T;
       }
       
       if (method === "POST") {
-        return await mockCoursesAPI.create(body) as T;
-      }
-      
-      if (method === "PUT") {
-        const courseId = path.split("/").pop();
-        return await mockCoursesAPI.update(courseId!, body) as T;
-      }
-      
-      if (method === "DELETE") {
-        const courseId = path.split("/").pop();
-        return await mockCoursesAPI.delete(courseId!) as T;
+        const newCourse = {
+          _id: `course${mockCourses.length + 1}`,
+          ...body,
+          enrolled: 0,
+          createdAt: new Date().toISOString(),
+        };
+        mockCourses.push(newCourse);
+        return {
+          success: true,
+          data: newCourse,
+        } as T;
       }
     }
     
     // Users routes
     if (path.startsWith("/api/users")) {
       if (path === "/api/users" || path.includes("?")) {
-        const url = new URL(path, "http://localhost");
-        const role = url.searchParams.get("role");
-        const limit = url.searchParams.get("limit");
-        const page = url.searchParams.get("page");
-        return await mockUsersAPI.getAll({ 
-          role: role || undefined,
-          limit: limit ? parseInt(limit) : undefined,
-          page: page ? parseInt(page) : undefined,
-        }) as T;
+        return {
+          success: true,
+          data: mockUsers,
+        } as T;
       }
       
       if (path === "/api/users/students") {
-        return await mockUsersAPI.getStudents() as T;
+        return {
+          success: true,
+          data: mockUsers.filter(u => u.role === "student"),
+        } as T;
       }
       
       if (method === "POST") {
-        return await mockUsersAPI.create(body) as T;
-      }
-      
-      if (method === "PUT") {
-        const userId = path.split("/").pop();
-        return await mockUsersAPI.update(userId!, body) as T;
-      }
-      
-      if (method === "DELETE") {
-        const userId = path.split("/").pop();
-        return await mockUsersAPI.delete(userId!) as T;
+        const newUser = {
+          _id: `user${mockUsers.length + 1}`,
+          ...body,
+          createdAt: new Date().toISOString(),
+        };
+        mockUsers.push(newUser);
+        return {
+          success: true,
+          data: newUser,
+        } as T;
       }
     }
     
@@ -135,20 +399,66 @@ export async function apiFetch<T = any>(
     if (path.startsWith("/api/enrollments")) {
       if (path === "/api/enrollments") {
         if (method === "GET") {
-          return await mockEnrollmentsAPI.getAll() as T;
+          return {
+            success: true,
+            data: mockEnrollments,
+          } as T;
         }
         if (method === "POST") {
-          return await mockEnrollmentsAPI.create(body) as T;
+          const userData = localStorage.getItem("user");
+          if (!userData) {
+            throw new Error("Not authenticated");
+          }
+          
+          const user = JSON.parse(userData);
+          const course = mockCourses.find(c => c._id === body.courseId);
+          
+          if (!course) {
+            throw new Error("Course not found");
+          }
+          
+          const newEnrollment = {
+            _id: `enrollment${mockEnrollments.length + 1}`,
+            student: {
+              _id: user.id,
+              firstName: user.firstName,
+              lastName: user.lastName,
+              email: user.email,
+              studentId: user.studentId,
+            },
+            course: {
+              _id: course._id,
+              title: course.title,
+              code: course.code,
+            },
+            status: "active",
+            progress: 0,
+            enrollmentDate: new Date().toISOString(),
+          };
+          
+          mockEnrollments.push(newEnrollment);
+          course.enrolled += 1;
+          
+          return {
+            success: true,
+            data: newEnrollment,
+          } as T;
         }
       }
       
       if (path === "/api/enrollments/student/me") {
-        return await mockEnrollmentsAPI.getByStudent() as T;
-      }
-      
-      if (method === "PUT") {
-        const enrollmentId = path.split("/").pop();
-        return await mockEnrollmentsAPI.update(enrollmentId!, body) as T;
+        const userData = localStorage.getItem("user");
+        if (!userData) {
+          throw new Error("Not authenticated");
+        }
+        
+        const user = JSON.parse(userData);
+        const studentEnrollments = mockEnrollments.filter(e => e.student._id === user.id);
+        
+        return {
+          success: true,
+          data: studentEnrollments,
+        } as T;
       }
     }
     
@@ -156,25 +466,40 @@ export async function apiFetch<T = any>(
     if (path.startsWith("/api/assignments")) {
       if (path === "/api/assignments") {
         if (method === "GET") {
-          return await mockAssignmentsAPI.getAll() as T;
+          return {
+            success: true,
+            data: mockAssignments,
+          } as T;
         }
         if (method === "POST") {
-          return await mockAssignmentsAPI.create(body) as T;
+          const newAssignment = {
+            _id: `assignment${mockAssignments.length + 1}`,
+            ...body,
+            createdAt: new Date().toISOString(),
+          };
+          mockAssignments.push(newAssignment);
+          return {
+            success: true,
+            data: newAssignment,
+          } as T;
         }
       }
       
       if (path === "/api/assignments/enrolled") {
-        return await mockAssignmentsAPI.getEnrolled() as T;
-      }
-      
-      if (method === "PUT") {
-        const assignmentId = path.split("/").pop();
-        return await mockAssignmentsAPI.update(assignmentId!, body) as T;
-      }
-      
-      if (method === "DELETE") {
-        const assignmentId = path.split("/").pop();
-        return await mockAssignmentsAPI.delete(assignmentId!) as T;
+        const userData = localStorage.getItem("user");
+        if (!userData) {
+          throw new Error("Not authenticated");
+        }
+        
+        const user = JSON.parse(userData);
+        const studentEnrollments = mockEnrollments.filter(e => e.student._id === user.id);
+        const enrolledCourseIds = studentEnrollments.map(e => e.course._id);
+        const enrolledAssignments = mockAssignments.filter(a => enrolledCourseIds.includes(a.course._id));
+        
+        return {
+          success: true,
+          data: enrolledAssignments,
+        } as T;
       }
     }
     
@@ -182,25 +507,40 @@ export async function apiFetch<T = any>(
     if (path.startsWith("/api/materials")) {
       if (path === "/api/materials") {
         if (method === "GET") {
-          return await mockMaterialsAPI.getAll() as T;
+          return {
+            success: true,
+            data: mockMaterials,
+          } as T;
         }
         if (method === "POST") {
-          return await mockMaterialsAPI.create(body) as T;
+          const newMaterial = {
+            _id: `material${mockMaterials.length + 1}`,
+            ...body,
+            createdAt: new Date().toISOString(),
+          };
+          mockMaterials.push(newMaterial);
+          return {
+            success: true,
+            data: newMaterial,
+          } as T;
         }
       }
       
       if (path === "/api/materials/enrolled") {
-        return await mockMaterialsAPI.getEnrolled() as T;
-      }
-      
-      if (method === "PUT") {
-        const materialId = path.split("/").pop();
-        return await mockMaterialsAPI.update(materialId!, body) as T;
-      }
-      
-      if (method === "DELETE") {
-        const materialId = path.split("/").pop();
-        return await mockMaterialsAPI.delete(materialId!) as T;
+        const userData = localStorage.getItem("user");
+        if (!userData) {
+          throw new Error("Not authenticated");
+        }
+        
+        const user = JSON.parse(userData);
+        const studentEnrollments = mockEnrollments.filter(e => e.student._id === user.id);
+        const enrolledCourseIds = studentEnrollments.map(e => e.course._id);
+        const enrolledMaterials = mockMaterials.filter(m => enrolledCourseIds.includes(m.course._id));
+        
+        return {
+          success: true,
+          data: enrolledMaterials,
+        } as T;
       }
     }
     
@@ -208,16 +548,23 @@ export async function apiFetch<T = any>(
     if (path.startsWith("/api/results")) {
       if (path === "/api/results") {
         if (method === "GET") {
-          return await mockResultsAPI.getAll() as T;
+          return {
+            success: true,
+            data: mockResults,
+          } as T;
         }
         if (method === "POST") {
-          return await mockResultsAPI.create(body) as T;
+          const newResult = {
+            _id: `result${mockResults.length + 1}`,
+            ...body,
+            createdAt: new Date().toISOString(),
+          };
+          mockResults.push(newResult);
+          return {
+            success: true,
+            data: newResult,
+          } as T;
         }
-      }
-      
-      if (method === "PUT") {
-        const resultId = path.split("/").pop();
-        return await mockResultsAPI.update(resultId!, body) as T;
       }
     }
     
